@@ -1,15 +1,8 @@
 import numpy as np
-import pandas as pd
-import os
 import matplotlib.pyplot as plt
-import seaborn as sns
 import tensorflow as tf
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, MaxPool2D, Flatten, Dense, Dropout, BatchNormalization
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import cv2
-from tensorflow.keras.applications import VGG16, InceptionResNetV2
 from tensorflow.keras import regularizers
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD, Adamax
 from sklearn.metrics import confusion_matrix
@@ -19,37 +12,33 @@ train_dir = "emotiondata/train"
 test_dir = "emotiondata/test"
 
 img_size = 48
-
 train_datagen = ImageDataGenerator(
     width_shift_range = 0.1,
     height_shift_range = 0.1,
     horizontal_flip = True,
-    rescale = 1./255,
-    validation_split = 0.2
+    rescale = 1./255
 )
 
-validation_datagen = ImageDataGenerator(rescale = 1./255, validation_split = 0.2)
+validation_datagen = ImageDataGenerator(rescale = 1./255)
 
 train_generator = train_datagen.flow_from_directory(
     directory = train_dir,
     target_size = (img_size, img_size),
-    batch_size = 64,
+    batch_size = 32,
     color_mode = "grayscale",
-    class_mode = "categorical",
-    subset = "training"
+    class_mode = "categorical"
 )
 
 validation_generator = validation_datagen.flow_from_directory(
     directory = test_dir,
     target_size = (img_size, img_size),
-    batch_size = 64,
+    batch_size = 32,
     color_mode = "grayscale",
-    class_mode = "categorical",
-    subset = "validation"
+    class_mode = "categorical"
 )
 
 epochs = 60
-batch_size = 64
+batch_size = 32
 
 model = tf.keras.models.Sequential()
 model.add(Conv2D(32, kernel_size=(3, 3), padding='same', activation='relu', input_shape=(48, 48,1)))
@@ -143,6 +132,8 @@ def plot_confusion_matrix(cm, classes,
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
 
+labels = ['Anger', 'Contempt','Disgust', 'Fear', 'Happiness', 'Neutral', 'Sadness', 'Surprise']
+
 # Предсказания модели
 Y_pred = model.predict(validation_generator)
 y_pred = np.argmax(Y_pred, axis=1)
@@ -151,4 +142,6 @@ y_pred = np.argmax(Y_pred, axis=1)
 cm = confusion_matrix(validation_generator.classes, y_pred)
 
 # Вывод матрицы ошибок
-plot_confusion_matrix(cm, classes = range(8))
+plot_confusion_matrix(cm, classes = labels)
+plt.show()
+
